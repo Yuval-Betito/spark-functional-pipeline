@@ -1,0 +1,43 @@
+# === Scala / SBT ===
+target/
+project/target/
+project/project/
+.bsp/
+.bloop/
+.metals/
+.coursier/
+
+# === Spark local artifacts ===
+spark-warehouse/
+metastore_db/
+derby.log
+**/_SUCCESS
+**/_temporary/
+**/.crc
+
+# === Job outputs (local runs) ===
+out/
+idea-out/
+# data/*.csv
+# !data/sample/**
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# === VS Code ===
+.vscode/
+
+# === OS junk ===
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === Logs / temp ===
+*.log
+*.tmp
+*.swp
+*~
+
