@@ -2,7 +2,7 @@ package com.example.pipeline.core
 
 /** Functional combinators and small utilities with no I/O.
  *
- * This module provides:
+ * This module provides (per course spec: “Compose functions using combinators”):
  *  - `PipeOps#pipe` – readable function piping / composition.
  *  - `composeAll`   – compose a list of endomorphic functions.
  *  - `where`        – a readable filtering combinator.

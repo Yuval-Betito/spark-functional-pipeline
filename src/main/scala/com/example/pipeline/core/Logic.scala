@@ -84,13 +84,20 @@ object Logic {
   }
 
   /**
-   * Mean computed using [[sumTailRec]].
+   * Mean computed via a tail-recursive inner loop (signature unchanged).
    *
    * @param xs numbers (may be empty)
    * @return Some(mean) or None when xs is empty
    */
-  def meanTailRec(xs: List[Double]): Option[Double] =
-    if (xs.isEmpty) None else Some(sumTailRec(xs) / xs.length.toDouble)
+  def meanTailRec(xs: List[Double]): Option[Double] = {
+    @tailrec
+    def loop(ys: List[Double], acc: Double, n: Int): (Double, Int) = ys match {
+      case h :: t => loop(t, acc + h, n + 1)
+      case Nil    => (acc, n)
+    }
+    val (sum, n) = loop(xs, 0.0, 0)
+    if (n == 0) None else Some(sum / n.toDouble)
+  }
 
   // ========= Composition Example =========
 
@@ -122,6 +129,7 @@ object Logic {
     }
   }
 }
+
 
 
 

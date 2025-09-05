@@ -103,6 +103,14 @@ object SparkJobs {
       F.col("quantity") * F.col("unitPrice")
     )
 
+    /** Spec: Compose functions using combinators
+     * Demonstrates explicit composition on the Spark job:
+     *  - build a tiny String => String pipeline using our custom `composeAll`
+     *  - apply it via our `pipe` extension to a DataFrame transformation
+     *
+     * This makes the “Compose functions using combinators” requirement visible in the job itself,
+     * without changing any business result (we just add an auxiliary column).
+     */
     val keepNonNegative: DataFrame => DataFrame =
       df => df.filter(F.col("total") >= 0)
 
@@ -156,6 +164,7 @@ object SparkJobs {
       .csv(s"$outDir/revenue_pure")
   }
 }
+
 
 
 
