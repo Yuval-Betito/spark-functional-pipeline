@@ -1,8 +1,7 @@
 package com.example.pipeline.core
 
 import scala.annotation.tailrec
-import scala.util.Try
-import com.example.pipeline.core.ParseError._
+
 
 /**
  * Pure functional logic only (no I/O and no Spark).
@@ -18,43 +17,24 @@ object Logic {
   // ========= Parsing (CSV) =========
 
   /**
-   * Parse a CSV line into a [[Transaction]].
+   * Parse a CSV line into a [[Transaction]] using the canonical domain parser.
    *
    * Expected schema (6 columns): txnId,userId,productId,quantity,unitPrice,timestamp
    *
-   * @param line raw CSV line
-   * @return Right(Transaction) on success; Left(ParseError) on failure
+   * Delegates to [[Transaction.fromCsv]] to keep a single source of truth.
    */
-  def parseTransactionCsv(line: String): Either[ParseError, Transaction] = {
-    val parts = line.split(",", -1).map(_.trim).toList
-    parts match {
-      case txnId :: userId :: productId :: qtyStr :: priceStr :: tsStr :: Nil =>
-        for {
-          q  <- Try(qtyStr.toInt).toEither.left.map(_ => BadTransaction(line, s"quantity=$qtyStr"))
-          up <- Try(priceStr.toDouble).toEither.left.map(_ => BadTransaction(line, s"unitPrice=$priceStr"))
-          ts <- Try(tsStr.toLong).toEither.left.map(_ => BadTransaction(line, s"timestamp=$tsStr"))
-        } yield Transaction(txnId, userId, productId, q, up, ts)
-
-      case _ =>
-        Left(BadTransaction(line, "wrong number of columns"))
-    }
-  }
+  def parseTransactionCsv(line: String): Either[ParseError, Transaction] =
+    Transaction.fromCsv(line)
 
   /**
-   * Parse a CSV line into a [[Product]].
+   * Parse a CSV line into a [[Product]] using the canonical domain parser.
    *
    * Expected schema (2 columns): productId,category
    *
-   * @param line raw CSV line
-   * @return Right(Product) on success; Left(ParseError) on failure
+   * Delegates to [[Product.fromCsv]] to keep a single source of truth.
    */
-  def parseProductCsv(line: String): Either[ParseError, Product] = {
-    val parts = line.split(",", -1).map(_.trim).toList
-    parts match {
-      case pid :: cat :: Nil => Right(Product(pid, cat))
-      case _                 => Left(BadProduct(line, "wrong number of columns"))
-    }
-  }
+  def parseProductCsv(line: String): Either[ParseError, Product] =
+    Product.fromCsv(line)
 
   // ========= Higher-order + Currying =========
 
@@ -129,6 +109,7 @@ object Logic {
     }
   }
 }
+
 
 
 
