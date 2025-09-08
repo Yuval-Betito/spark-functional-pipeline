@@ -38,40 +38,24 @@ object SparkJobs {
       )
 
   /**
-   * Load the products CSV into a DataFrame.
+   * Load the products CSV into a DataFrame with proper types.
    *
    * Expected header columns:
    *   productId, category
-   *
-   * @param spark Active [[SparkSession]].
-   * @param path  Path to the products CSV (local/HDFS/S3 URI).
-   * @return A DataFrame with columns: productId (string), category (string).
    */
   def loadProductsDF(spark: SparkSession, path: String): DataFrame =
     spark.read.option("header", "true").csv(path)
       .select(F.col("productId"), F.col("category"))
 
   /**
-   * High-level Spark pipeline:
-   *   1) Load inputs
-   *   2) Enforce a minimal input size
-   *   3) Apply a typed closure-based filter
-   *   4) Compute totals, join products and aggregate
-   *   5) Write Spark and pure (domain) outputs
+   * End-to-end pipeline.
    *
-   * Side effects:
-   *   - Writes two CSV outputs under `outDir`:
-   *       * `revenue_by_category`
-   *       * `revenue_pure`
-   *
-   * @param spark              Active [[SparkSession]].
-   * @param txnsPath           Path to transactions CSV.
-   * @param productsPath       Path to products CSV.
-   * @param outDir             Base directory for outputs.
-   * @param minTotalThreshold  Keep rows where quantity * unitPrice >= threshold.
-   * @param minRows            Minimal number of input rows; default 10000 for production.
-   *                           Tests may pass 0 or a smaller value.
-   * @throws IllegalArgumentException if `minRows` requirement is not met.
+   * @param spark              active [[SparkSession]]
+   * @param txnsPath           path to transactions.csv
+   * @param productsPath       path to products.csv
+   * @param outDir             output directory for results
+   * @param minTotalThreshold  minimal transaction total (quantity*unitPrice)
+   * @param minRows            minimal number of rows required (default 10k)
    */
   def runPipeline(
                    spark: SparkSession,
@@ -93,7 +77,7 @@ object SparkJobs {
     require(totalRows >= minRows, s"Dataset must have >= $minRows rows, got " + totalRows)
     println(s"[INFO] Transactions rows: " + totalRows)
 
-    // 3) Closure-based filter on a typed Dataset
+    // 3) Closure-based filter on a typed Dataset (currying already in use)
     val txnsDS     = txnsDF.as[Transaction]
     val filteredDS = txnsDS.filter(Logic.minTotalFilter(minTotalThreshold) _)
 
@@ -103,14 +87,7 @@ object SparkJobs {
       F.col("quantity") * F.col("unitPrice")
     )
 
-    /** Spec: Compose functions using combinators
-     * Demonstrates explicit composition on the Spark job:
-     *  - build a tiny String => String pipeline using our custom `composeAll`
-     *  - apply it via our `pipe` extension to a DataFrame transformation
-     *
-     * This makes the “Compose functions using combinators” requirement visible in the job itself,
-     * without changing any business result (we just add an auxiliary column).
-     */
+    /** Spec: Compose functions using combinators */
     val keepNonNegative: DataFrame => DataFrame =
       df => df.filter(F.col("total") >= 0)
 
@@ -164,6 +141,7 @@ object SparkJobs {
       .csv(s"$outDir/revenue_pure")
   }
 }
+
 
 
 

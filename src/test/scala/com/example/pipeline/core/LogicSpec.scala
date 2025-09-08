@@ -11,9 +11,7 @@ import com.example.pipeline.core.ParseError._
  *  - CSV parsing to case classes with functional error handling (Either[ParseError, A]).
  *  - Tail-recursive helpers: sumTailRec / meanTailRec.
  *  - Aggregation: revenueByCategory on (Transaction, Product) pairs.
- *
- * Notes:
- * Tests use pattern matching instead of .toOption/.left.get to keep code idiomatic and safe.
+ *  - Currying: minTotalFilter / totalAtLeast.
  */
 final class LogicSpec extends AnyFunSuite with Matchers {
 
@@ -65,5 +63,27 @@ final class LogicSpec extends AnyFunSuite with Matchers {
     m("Books") shouldBe 35.0
     m("Toys")  shouldBe 50.0
   }
+
+  // ===== Currying demo (additive tests only; no changes to existing ones) =====
+
+  test("minTotalFilter is curried and works") {
+    // eta-expansion via underscore gives Transaction => Boolean
+    val f = Logic.minTotalFilter(10.0) _
+    f(Transaction("tA","u","p",2,5.0,0L))  shouldBe true   // 2*5.0 = 10.0
+    f(Transaction("tB","u","p",1,9.99,0L)) shouldBe false
+  }
+
+  test("totalAtLeast is curried and works (alias)") {
+    // with an expected type, no underscore needed
+    val g: Transaction => Boolean = Logic.totalAtLeast(10.0)
+    g(Transaction("tC","u","p",2,5.0,0L))  shouldBe true
+    g(Transaction("tD","u","p",1,9.99,0L)) shouldBe false
+
+    // or underscore for eta-expansion
+    val h = Logic.totalAtLeast(10.0) _
+    h(Transaction("tE","u","p",2,5.0,0L))  shouldBe true
+    h(Transaction("tF","u","p",1,9.99,0L)) shouldBe false
+  }
 }
+
 

@@ -2,7 +2,6 @@ package com.example.pipeline.core
 
 import scala.annotation.tailrec
 
-
 /**
  * Pure functional logic only (no I/O and no Spark).
  *
@@ -47,6 +46,10 @@ object Logic {
    */
   def minTotalFilter(threshold: Double)(t: Transaction): Boolean =
     t.quantity * t.unitPrice >= threshold
+
+  /** Alias for the same curried predicate, kept for clarity in docs/tests. */
+  def totalAtLeast(threshold: Double)(t: Transaction): Boolean =
+    minTotalFilter(threshold)(t)
 
   // ========= Tail Recursion =========
 
@@ -109,8 +112,6 @@ object Logic {
     }
   }
 }
-
-
 
 
 
